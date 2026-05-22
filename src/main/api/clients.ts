@@ -20,14 +20,25 @@ function getKeysFilePath(): string {
 }
 
 function loadKeys(): ApiKeyStore {
+  const keysFile = getKeysFilePath();
   try {
-    const keysFile = getKeysFilePath();
+    // 优先使用加密存储
     if (safeStorage.isEncryptionAvailable() && fs.existsSync(keysFile)) {
       const encrypted = fs.readFileSync(keysFile);
       const decrypted = safeStorage.decryptString(encrypted);
       return JSON.parse(decrypted);
     }
-  } catch { /* keys file doesn't exist yet */ }
+    // 回退：读取明文文件
+    const plainFile = keysFile + '.plain';
+    if (fs.existsSync(plainFile)) {
+      const raw = fs.readFileSync(plainFile, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err: any) {
+    if (err?.code !== 'ENOENT') {
+      console.error('Failed to load API keys:', err);
+    }
+  }
   return {};
 }
 
