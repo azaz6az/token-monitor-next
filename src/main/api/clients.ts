@@ -62,9 +62,22 @@ export async function fetchDeepSeekBalance(apiKey: string): Promise<ServiceBalan
   });
   if (!res.ok) throw new Error(`DeepSeek API error: ${res.status}`);
   const data = await res.json() as any;
+  // DeepSeek balance API returns: { is_available, balance_infos: [{ currency, total_balance, ... }] }
+  let balance = 0;
+  if (data.balance_infos && data.balance_infos.length > 0) {
+    for (const info of data.balance_infos) {
+      const b = parseFloat(info.total_balance) || 0;
+      balance += b;
+    }
+  }
+  // Fallback to older format
+  if (balance === 0) {
+    balance = parseFloat(data.balance) || parseFloat(data.currency_balance) || 0;
+  }
+
   return {
     service: 'deepseek',
-    balance: data.balance ?? data.currency_balance ?? 0,
+    balance,
     tokensUsed: data.total_tokens ?? data.usage?.total_tokens ?? 0,
   };
 }

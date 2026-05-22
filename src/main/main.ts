@@ -11,7 +11,7 @@ app.whenReady().then(() => {
   createMainWindow();
 
   startPolling((data: RateInfo, alert: AlertState) => {
-    const win = BrowserWindow.getAllWindows().find(w => !w.isDestroyed() && w.title !== '');
+    const win = BrowserWindow.getAllWindows().find(w => !w.isDestroyed());
     if (win && !win.isDestroyed()) {
       win.webContents.send('token-data', { data, alert });
     }

@@ -17,14 +17,15 @@ export function createMainWindow(): BrowserWindow {
     alwaysOnTop: true,
     resizable: false,
     skipTaskbar: false,
+    type: 'toolbar',
     webPreferences: {
-      preload: path.join(__dirname, '../../dist/preload/preload.js'),
+      preload: path.join(__dirname, '../../preload/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../../dist/renderer/index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -57,7 +58,7 @@ export function showBubble(alert: AlertState, service: string): void {
     skipTaskbar: true,
     focusable: true,
     webPreferences: {
-      preload: path.join(__dirname, '../../dist/preload/preload.js'),
+      preload: path.join(__dirname, '../../preload/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
