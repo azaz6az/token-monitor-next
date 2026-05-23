@@ -40,13 +40,13 @@ const App: React.FC = () => {
         <ServiceCard
           data={deepseek}
           alert={deepseekAlert}
-          accentColor="var(--accent-deepseek)"
+          accentColor="#00d4aa"
           displayName="DeepSeek"
         />
         <ServiceCard
           data={mimo}
           alert={mimoAlert}
-          accentColor="var(--accent-mimo)"
+          accentColor="#ff8c42"
           displayName="MiMo"
         />
       </div>
