@@ -7,6 +7,7 @@ const bubbleWindows: BrowserWindow[] = [];
 const BUBBLE_WIDTH = 280;
 const BUBBLE_HEIGHT = 150;
 const BUBBLE_OFFSET = 80;
+const bubbleCooldown: Record<string, number> = {};
 
 export function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -40,6 +41,12 @@ export function getMainWindow(): BrowserWindow | null {
 
 export function showBubble(alert: AlertState, service: string): void {
   if (alert.level === 'normal') return;
+
+  // 同服务同级别 5 分钟内不重复弹
+  const key = service + ':' + alert.level;
+  const now = Date.now();
+  if (bubbleCooldown[key] && now - bubbleCooldown[key] < 5 * 60 * 1000) return;
+  bubbleCooldown[key] = now;
 
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
   const x = screenWidth - BUBBLE_WIDTH - 16;

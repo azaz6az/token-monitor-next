@@ -15,7 +15,7 @@ app.whenReady().then(() => {
     if (win && !win.isDestroyed()) {
       win.webContents.send('token-data', { data, alert });
     }
-    if (alert.level !== 'normal') {
+    if (alert.level !== 'normal' && !data.error) {
       showBubble(alert, data.service);
     }
   });
