@@ -60,7 +60,7 @@ export function evaluateAlert(service: string, estimatedMinutesLeft: number): Al
 }
 
 function buildMessage(service: string, minutesLeft: number): string {
-  const name = service === 'deepseek' ? 'DeepSeek' : 'MiMo';
+  const name = service === 'deepseek' ? 'DeepSeek' : service === 'token-plan' ? 'Token Plan' : 'MiMo';
   if (minutesLeft <= 15) {
     return `${name} 余额严重不足，预计 ${Math.round(minutesLeft)} 分钟后耗尽！`;
   }

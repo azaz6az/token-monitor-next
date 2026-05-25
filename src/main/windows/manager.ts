@@ -1,13 +1,83 @@
-import { BrowserWindow, screen, Notification } from 'electron';
+import { BrowserWindow, screen, Notification, Tray, Menu, nativeImage, app } from 'electron';
 import path from 'path';
 import { AlertState } from '../engine/alerts';
+import { getIsQuitting } from '../state';
 
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
 const bubbleWindows: BrowserWindow[] = [];
 const BUBBLE_WIDTH = 280;
 const BUBBLE_HEIGHT = 150;
 const BUBBLE_OFFSET = 80;
 const bubbleCooldown: Record<string, number> = {};
+
+function createTrayIcon(): Electron.NativeImage {
+  // 16x16 简单图标：深色背景 + 绿色圆点
+  const size = 16;
+  const buffer = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const cx = x - 7.5, cy = y - 7.5;
+      const dist = Math.sqrt(cx * cx + cy * cy);
+      if (dist < 5) {
+        // 绿色圆点
+        buffer[i] = 0; buffer[i + 1] = 200; buffer[i + 2] = 120; buffer[i + 3] = 255;
+      } else if (dist < 6) {
+        // 边缘抗锯齿
+        buffer[i] = 20; buffer[i + 1] = 30; buffer[i + 2] = 50; buffer[i + 3] = 200;
+      } else {
+        // 透明背景
+        buffer[i] = 0; buffer[i + 1] = 0; buffer[i + 2] = 0; buffer[i + 3] = 0;
+      }
+    }
+  }
+  return nativeImage.createFromBuffer(buffer, { width: size, height: size });
+}
+
+function createTray(): void {
+  const icon = createTrayIcon();
+  tray = new Tray(icon);
+  tray.setToolTip('Token Monitor');
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示窗口',
+      click: () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.show();
+          mainWindow.restore();
+          mainWindow.focus();
+        } else {
+          createMainWindow();
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: '退出',
+      click: () => {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+  tray.on('double-click', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isVisible()) {
+        mainWindow.focus();
+      } else {
+        mainWindow.show();
+        mainWindow.restore();
+        mainWindow.focus();
+      }
+    } else {
+      // 窗口已被销毁，重新创建
+      createMainWindow();
+    }
+  });
+}
 
 export function createMainWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
@@ -28,9 +98,15 @@ export function createMainWindow(): BrowserWindow {
 
   mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  // 点击关闭时隐藏到托盘，不退出
+  mainWindow.on('close', (e) => {
+    if (!getIsQuitting()) {
+      e.preventDefault();
+      mainWindow?.hide();
+    }
   });
+
+  createTray();
 
   return mainWindow;
 }

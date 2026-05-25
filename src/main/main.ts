@@ -5,6 +5,7 @@ import { startPolling, stopPolling } from './engine/poller';
 import { closeDb } from './db/database';
 import { AlertState } from './engine/alerts';
 import { RateInfo } from './engine/rate';
+import { setIsQuitting } from './state';
 
 app.whenReady().then(() => {
   registerIpcHandlers();
@@ -21,12 +22,13 @@ app.whenReady().then(() => {
   });
 });
 
+// 关闭所有窗口时不退出，保持托盘运行
 app.on('window-all-closed', () => {
-  stopPolling();
-  app.quit();
+  // 不调用 app.quit()，应用继续在托盘中运行
 });
 
 app.on('before-quit', () => {
+  setIsQuitting(true);
   stopPolling();
 });
 

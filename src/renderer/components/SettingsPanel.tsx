@@ -20,13 +20,15 @@ declare global {
 
 const SettingsPanel: React.FC<Props> = ({ isOpen, onClose }) => {
   const [deepseekKey, setDeepseekKey] = useState('');
-  const [mimoKey, setMimoKey] = useState('');
+  const [tpServiceToken, setTpServiceToken] = useState('');
+  const [tpUserId, setTpUserId] = useState('');
 
   useEffect(() => {
     if (isOpen && window.electronAPI) {
       window.electronAPI.getApiKeys().then(keys => {
         setDeepseekKey(keys.deepseek || '');
-        setMimoKey(keys.mimo || '');
+        setTpServiceToken(keys.tokenPlanServiceToken || '');
+        setTpUserId(keys.tokenPlanUserId || '');
       });
     }
   }, [isOpen]);
@@ -36,7 +38,8 @@ const SettingsPanel: React.FC<Props> = ({ isOpen, onClose }) => {
   const handleSave = async () => {
     await window.electronAPI.saveApiKeys({
       deepseek: deepseekKey || undefined,
-      mimo: mimoKey || undefined,
+      tokenPlanServiceToken: tpServiceToken || undefined,
+      tokenPlanUserId: tpUserId || undefined,
     });
     onClose();
   };
@@ -52,13 +55,25 @@ const SettingsPanel: React.FC<Props> = ({ isOpen, onClose }) => {
           onChange={e => setDeepseekKey(e.target.value)}
           placeholder="sk-..."
         />
-        <label>MiMo API Key</label>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '12px 0' }} />
+        <label style={{ color: '#a78bfa' }}>MiMo 平台（含 Token Plan）</label>
+        <label>Service Token</label>
         <input
           type="password"
-          value={mimoKey}
-          onChange={e => setMimoKey(e.target.value)}
-          placeholder="输入 MiMo API Key"
+          value={tpServiceToken}
+          onChange={e => setTpServiceToken(e.target.value)}
+          placeholder="从浏览器 Cookie 复制 api-platform_serviceToken"
         />
+        <label>User ID</label>
+        <input
+          type="text"
+          value={tpUserId}
+          onChange={e => setTpUserId(e.target.value)}
+          placeholder="从浏览器 Cookie 复制 userId"
+        />
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', margin: '4px 0 12px' }}>
+          登录 platform.xiaomimimo.com → F12 → Application → Cookies 复制
+        </p>
         <button className="save-btn" onClick={handleSave}>保存</button>
       </div>
     </div>

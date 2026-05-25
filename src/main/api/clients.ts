@@ -12,6 +12,8 @@ interface ServiceBalance {
 interface ApiKeyStore {
   deepseek?: string;
   mimo?: string;
+  tokenPlanServiceToken?: string;
+  tokenPlanUserId?: string;
 }
 
 // 注意：KEYS_FILE 必须延迟初始化，因为 app.getPath('userData') 只能在 app ready 后调用
@@ -82,15 +84,41 @@ export async function fetchDeepSeekBalance(apiKey: string): Promise<ServiceBalan
   };
 }
 
-export async function fetchMiMoBalance(apiKey: string): Promise<ServiceBalance> {
-  const res = await fetch('https://mimo.xiaomi.com/api/v1/account/balance', {
-    headers: { Authorization: `Bearer ${apiKey}` },
+export async function fetchMiMoBalance(serviceToken: string, userId: string): Promise<ServiceBalance> {
+  const res = await fetch('https://platform.xiaomimimo.com/api/v1/balance', {
+    headers: {
+      Cookie: `api-platform_serviceToken="${serviceToken}"; userId=${userId}`,
+    },
   });
   if (!res.ok) throw new Error(`MiMo API error: ${res.status}`);
-  const data = await res.json() as any;
+  const json = await res.json() as any;
+  const data = json.data;
   return {
     service: 'mimo',
-    balance: data.balance ?? data.credit ?? 0,
-    tokensUsed: data.used_tokens ?? data.usage?.total ?? 0,
+    balance: parseFloat(data?.balance) || 0,
+    tokensUsed: 0,
+  };
+}
+
+export async function fetchTokenPlanBalance(serviceToken: string, userId: string): Promise<ServiceBalance> {
+  const res = await fetch('https://platform.xiaomimimo.com/api/v1/tokenPlan/usage', {
+    headers: {
+      Cookie: `api-platform_serviceToken="${serviceToken}"; userId=${userId}`,
+    },
+  });
+  if (!res.ok) throw new Error(`Token Plan API error: ${res.status}`);
+  const json = await res.json() as any;
+  const data = json.data;
+
+  // 套餐额度 (Credits)
+  const planItem = data?.usage?.items?.find((i: any) => i.name === 'plan_total_token');
+  const limit = planItem?.limit ?? 0;
+  const used = planItem?.used ?? 0;
+  const TOKENS_PER_YUAN = 100_000;
+
+  return {
+    service: 'token-plan',
+    balance: limit > 0 ? (limit - used) / TOKENS_PER_YUAN : 0, // 转换为"元"单位，与 rate 计算兼容
+    tokensUsed: used,
   };
 }

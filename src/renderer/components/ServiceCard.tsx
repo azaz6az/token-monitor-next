@@ -27,6 +27,7 @@ interface Props {
   alert: AlertData;
   accentColor: string;
   displayName: string;
+  unit?: string;
 }
 
 function formatRate(rate: number): string {
@@ -48,7 +49,7 @@ function formatTime(ts: number): string {
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
 }
 
-const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName }) => {
+const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName, unit = '¥' }) => {
   const dotLevel = rateLevel(data);
   const percent = Math.min(100, data.estimatedMinutesLeft > 0 && isFinite(data.estimatedMinutesLeft)
     ? Math.round((Math.min(data.estimatedMinutesLeft, 600) / 600) * 100)
@@ -76,7 +77,7 @@ const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName })
         <>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>余额</div>
           <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>
-            ¥<AnimatedNumber value={data.balance} decimals={2} />
+            {unit}<AnimatedNumber value={data.balance} decimals={unit === '¥' ? 2 : 0} />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>

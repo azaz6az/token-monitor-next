@@ -37,8 +37,10 @@ const defaultService = (service: string): ServiceData => ({
 export function useTokenData() {
   const [deepseek, setDeepseek] = useState<ServiceData>(() => defaultService('deepseek'));
   const [mimo, setMiMo] = useState<ServiceData>(() => defaultService('mimo'));
+  const [tokenPlan, setTokenPlan] = useState<ServiceData>(() => defaultService('token-plan'));
   const [deepseekAlert, setDeepseekAlert] = useState<AlertData>({ level: 'normal', message: '' });
   const [mimoAlert, setMiMoAlert] = useState<AlertData>({ level: 'normal', message: '' });
+  const [tokenPlanAlert, setTokenPlanAlert] = useState<AlertData>({ level: 'normal', message: '' });
 
   useEffect(() => {
     if (!window.electronAPI) return;
@@ -50,6 +52,9 @@ export function useTokenData() {
       } else if (data.service === 'mimo') {
         setMiMo(data);
         setMiMoAlert(alert);
+      } else if (data.service === 'token-plan') {
+        setTokenPlan(data);
+        setTokenPlanAlert(alert);
       }
     });
     return unsubscribe;
@@ -60,5 +65,5 @@ export function useTokenData() {
   const updateBalance = (service: string, newBalance: number) =>
     window.electronAPI?.updateBalance(service, newBalance);
 
-  return { deepseek, mimo, deepseekAlert, mimoAlert, refresh, updateBalance };
+  return { deepseek, mimo, tokenPlan, deepseekAlert, mimoAlert, tokenPlanAlert, refresh, updateBalance };
 }

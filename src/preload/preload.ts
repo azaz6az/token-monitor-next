@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  getApiKeys: (): Promise<{ deepseek?: string; mimo?: string }> =>
+  getApiKeys: (): Promise<{ deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }> =>
     ipcRenderer.invoke('get-api-keys'),
-  saveApiKeys: (keys: { deepseek?: string; mimo?: string }): Promise<{ success: boolean }> =>
+  saveApiKeys: (keys: { deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('save-api-keys', keys),
   manualRefresh: (): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('manual-refresh'),

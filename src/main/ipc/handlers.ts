@@ -8,7 +8,7 @@ export function registerIpcHandlers(): void {
     return getApiKeys();
   });
 
-  ipcMain.handle('save-api-keys', (_event, keys: { deepseek?: string; mimo?: string }) => {
+  ipcMain.handle('save-api-keys', (_event, keys: { deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }) => {
     saveApiKeys(keys);
     triggerManualRefresh();
     return { success: true };
