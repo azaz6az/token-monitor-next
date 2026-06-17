@@ -1,29 +1,31 @@
 # Token Monitor
 
-桌面端 LLM API Token 用量实时监控工具，支持 DeepSeek 和 小米 MiMo。
+桌面端 LLM 余额实时监控工具，支持 DeepSeek 和 小米 MiMo。
 
-![screenshot](https://img.shields.io/badge/platform-Windows-blue)
+![platform](https://img.shields.io/badge/platform-Windows-blue)
 ![tech](https://img.shields.io/badge/tech-Electron%20%2B%20React%20%2B%20TypeScript-brightgreen)
 
 ## 功能
 
-- **多服务监控** — 同时监控 DeepSeek 和 MiMo 余额
-- **实时轮询** — 每 30 秒自动拉取最新余额
-- **消耗速率** — 基于余额变化估算 Token 消耗速率（/min）
-- **已消耗 Token** — 会话累计 Token 消耗量
-- **三级预警** — 剩余时间 ≤ 2h 提醒 / ≤ 1h 警告 / ≤ 15min 紧急
-- **气泡弹窗** — 桌面右下角弹出预警通知
-- **API Key 加密** — 使用 Electron safeStorage 加密存储
-- **手动修正** — 支持手动修改余额数值
+- **多服务监控** — DeepSeek、MiMo、Token Plan 三合一
+- **纯托盘运行** — 启动后隐藏到系统托盘，零窗口干扰
+- **双击弹出面板** — 右下角毛玻璃弹窗，入场动画，失焦自动隐藏
+- **极简模式** — 鼠标悬停托盘图标显示余额，不用打开任何窗口
+- **Cookie 自动捕获** — MiMo 一键登录弹窗，登录后自动抓取 Cookie（不用手动复制）
+- **今日消耗** — 显示今日已花费金额，直观实用
+- **百分比展示** — Token Plan 显示剩余百分比 + 彩色进度条
+- **快捷充值** — 卡片内置充值链接，一键跳转
+- **三级预警** — 剩余时间 ≤ 2h 提醒 / ≤ 1h 警告 / ≤ 15min 紧急，气泡 5 秒自动消失
+- **桌面快捷方式** — 首次启动自动创建，静默启动无黑窗
 
 ## 界面
 
-暗色毛玻璃风格小窗（340×480），始终置顶，无边框可拖拽。
+托盘 + 右下角弹出面板，暗色毛玻璃风格。
 
-- 毛玻璃半透明卡片 + 渐变流光进度条
-- 呼吸灯状态指示
-- Canvas 迷你消耗趋势折线图
+- 呼吸灯状态指示（正常 / 警告 / 紧急 / 离线）
 - 数字过渡动画
+- Token Plan 百分比进度条
+- 告警横幅 + 桌面气泡通知
 
 ## 快速开始
 
@@ -35,18 +37,13 @@
 ### 安装运行
 
 ```bash
-# 克隆仓库
 git clone https://github.com/azaz6az/token-monitor-next.git
 cd token-monitor-next
-
-# 安装依赖
 npm install
-
-# 启动（首次会下载 Electron 二进制）
 npm start
 ```
 
-> 国内用户如遇 Electron 下载失败，先设置镜像：
+> 国内用户如遇 Electron 下载失败：
 > ```bash
 > set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 > npm install electron
@@ -54,11 +51,13 @@ npm start
 
 ### 使用
 
-1. 启动后看到两个服务卡片
-2. 点击底部「API 配置」输入 API Key
-3. 保存后自动开始 30 秒轮询
-4. 卡片显示实时余额、消耗速率、已消耗 Token
-5. 余额不足时自动弹出气泡预警
+1. 启动后托盘出现绿色圆点图标
+2. 右键托盘 → 「显示/隐藏面板」→ 点击「认证配置」
+3. **DeepSeek**：填写 API Key（`sk-...`）→ 保存
+4. **MiMo**：点击「登录获取 Cookie」→ 弹出浏览器窗口登录 → 关闭窗口自动保存
+5. 每 60 秒自动轮询刷新余额
+6. 双击托盘图标弹出完整面板
+7. 右键托盘 → 「极简模式」→ 悬停图标看余额
 
 ## 技术栈
 
@@ -67,35 +66,34 @@ npm start
 | 框架 | Electron 42 |
 | 前端 | React 19 + TypeScript |
 | 构建 | Vite + tsc |
-| 存储 | JSON 文件本地持久化 |
+| 存储 | JSON 文件本地持久化（防抖批量写入）|
 | 安全 | safeStorage 加密 / contextIsolation |
 
 ## 项目结构
 
 ```
 src/
-├── main/                     # Electron 主进程
-│   ├── main.ts               # 入口，生命周期
-│   ├── api/clients.ts        # DeepSeek / MiMo API 客户端
-│   ├── db/database.ts        # JSON 文件存储
+├── main/
+│   ├── main.ts               # 入口，生命周期，极简模式
+│   ├── constants.ts           # 共享常量
+│   ├── api/clients.ts        # DeepSeek/MiMo API + Cookie 自动捕获
+│   ├── db/database.ts        # JSON 存储（防抖批量写入）
 │   ├── engine/
-│   │   ├── poller.ts         # 30s 轮询调度
-│   │   ├── rate.ts           # 滑动窗口速率计算
-│   │   └── alerts.ts         # 三级预警引擎
+│   │   ├── poller.ts         # 60s 轮询 + 统一 pollService
+│   │   ├── rate.ts           # 速率计算
+│   │   └── alerts.ts         # 三级预警（5s 自动消失）
 │   ├── ipc/handlers.ts       # IPC 通道
-│   └── windows/manager.ts    # 窗口 / 气泡管理
+│   └── windows/manager.ts    # 托盘 / 弹窗面板 / 气泡通知
 ├── preload/preload.ts        # contextBridge
-└── renderer/                 # React 渲染进程
+└── renderer/
     ├── App.tsx
-    ├── global.css            # 暗色毛玻璃主题
+    ├── global.css            # 暗色毛玻璃 + 入场动画
     ├── components/
-    │   ├── ServiceCard.tsx   # 服务卡片
-    │   ├── ProgressBar.tsx   # 渐变进度条
+    │   ├── ServiceCard.tsx   # 服务卡片（余额/今日消耗/百分比/充值）
     │   ├── StatusDot.tsx     # 呼吸灯
-    │   ├── MiniChart.tsx     # 迷你折线图
     │   ├── AnimatedNumber.tsx # 数字动画
     │   ├── AlertBanner.tsx   # 预警横幅
-    │   └── SettingsPanel.tsx # API 配置面板
+    │   └── SettingsPanel.tsx # 认证配置
     └── hooks/useTokenData.ts # 数据订阅
 ```
 
