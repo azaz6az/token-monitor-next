@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0"
-npx electron .
+start "" node_modules\electron\dist\electron.exe .

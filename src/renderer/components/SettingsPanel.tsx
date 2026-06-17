@@ -8,73 +8,66 @@ interface Props {
 declare global {
   interface Window {
     electronAPI: {
-      getApiKeys: () => Promise<{ deepseek?: string; mimo?: string }>;
-      saveApiKeys: (keys: { deepseek?: string; mimo?: string }) => Promise<{ success: boolean }>;
-      manualRefresh: () => Promise<{ success: boolean }>;
-      updateBalance: (service: string, newBalance: number) => Promise<{ success: boolean }>;
-      getHistory: (service: string) => Promise<{ tokens_per_minute: number; recorded_at: string }[]>;
-      onTokenData: (cb: (payload: unknown) => void) => () => void;
+      getApiKeys: () => Promise<{ deepseekKey?: string; mimoCookies?: string }>;
+      saveApiKeys: (keys: { deepseekKey?: string; mimoCookies?: string }) => Promise<{ success: boolean }>;
+      captureMiMo: () => Promise<{ success: boolean }>;
     };
   }
 }
 
 const SettingsPanel: React.FC<Props> = ({ isOpen, onClose }) => {
-  const [deepseekKey, setDeepseekKey] = useState('');
-  const [tpServiceToken, setTpServiceToken] = useState('');
-  const [tpUserId, setTpUserId] = useState('');
+  const [dsKey, setDsKey] = useState('');
+  const [mimoLoggedIn, setMiMoLoggedIn] = useState(false);
+  const [capturing, setCapturing] = useState(false);
 
   useEffect(() => {
     if (isOpen && window.electronAPI) {
       window.electronAPI.getApiKeys().then(keys => {
-        setDeepseekKey(keys.deepseek || '');
-        setTpServiceToken(keys.tokenPlanServiceToken || '');
-        setTpUserId(keys.tokenPlanUserId || '');
+        setDsKey(keys.deepseekKey || '');
+        setMiMoLoggedIn(!!keys.mimoCookies);
       });
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSave = async () => {
-    await window.electronAPI.saveApiKeys({
-      deepseek: deepseekKey || undefined,
-      tokenPlanServiceToken: tpServiceToken || undefined,
-      tokenPlanUserId: tpUserId || undefined,
-    });
-    onClose();
-  };
-
   return (
     <div className="settings-overlay" onClick={onClose}>
       <div className="glass-card settings-panel" onClick={e => e.stopPropagation()}>
-        <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>API 配置</h3>
-        <label>DeepSeek API Key</label>
+        <h3 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>认证配置</h3>
+
+        <label style={{ color: '#00d4aa' }}>DeepSeek API Key</label>
         <input
           type="password"
-          value={deepseekKey}
-          onChange={e => setDeepseekKey(e.target.value)}
+          value={dsKey}
+          onChange={e => setDsKey(e.target.value)}
           placeholder="sk-..."
         />
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '12px 0' }} />
+        <button
+          className="save-btn"
+          onClick={() => window.electronAPI.saveApiKeys({ deepseekKey: dsKey || undefined })}
+          style={{ marginBottom: 14 }}
+        >保存</button>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', margin: '4px 0 12px' }} />
+
         <label style={{ color: '#a78bfa' }}>MiMo 平台（含 Token Plan）</label>
-        <label>Service Token</label>
-        <input
-          type="password"
-          value={tpServiceToken}
-          onChange={e => setTpServiceToken(e.target.value)}
-          placeholder="从浏览器 Cookie 复制 api-platform_serviceToken"
-        />
-        <label>User ID</label>
-        <input
-          type="text"
-          value={tpUserId}
-          onChange={e => setTpUserId(e.target.value)}
-          placeholder="从浏览器 Cookie 复制 userId"
-        />
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', margin: '4px 0 12px' }}>
-          登录 platform.xiaomimimo.com → F12 → Application → Cookies 复制
+        <button
+          className="save-btn"
+          onClick={async () => {
+            setCapturing(true);
+            const r = await window.electronAPI.captureMiMo();
+            setCapturing(false);
+            setMiMoLoggedIn(r.success);
+          }}
+          disabled={capturing}
+          style={{ width: '100%' }}
+        >
+          {capturing ? '登录中…' : mimoLoggedIn ? '✓ 已登录（点击重新登录）' : '登录获取 Cookie'}
+        </button>
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', margin: '6px 0 0' }}>
+          弹出浏览器窗口 → 登录 → 关闭窗口自动保存
         </p>
-        <button className="save-btn" onClick={handleSave}>保存</button>
       </div>
     </div>
   );

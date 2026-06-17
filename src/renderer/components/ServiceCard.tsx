@@ -1,8 +1,6 @@
 import React from 'react';
 import StatusDot from './StatusDot';
 import AnimatedNumber from './AnimatedNumber';
-import ProgressBar from './ProgressBar';
-import MiniChart from './MiniChart';
 import AlertBanner from './AlertBanner';
 
 interface ServiceData {
@@ -12,7 +10,7 @@ interface ServiceData {
   currentRate: number;
   recentRates: number[];
   estimatedMinutesLeft: number;
-  tokensConsumed: number;
+  todayCost: number;
   error: string | null;
   lastUpdated: number;
 }
@@ -28,11 +26,7 @@ interface Props {
   accentColor: string;
   displayName: string;
   unit?: string;
-}
-
-function formatRate(rate: number): string {
-  if (rate >= 1000) return `${(rate / 1000).toFixed(1)}K`;
-  return rate.toFixed(0);
+  rechargeUrl?: string;
 }
 
 function rateLevel(data: ServiceData): 'normal' | 'warning' | 'critical' | 'offline' {
@@ -49,11 +43,8 @@ function formatTime(ts: number): string {
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}:${d.getSeconds().toString().padStart(2, '0')}`;
 }
 
-const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName, unit = '¥' }) => {
+const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName, unit = '¥', rechargeUrl }) => {
   const dotLevel = rateLevel(data);
-  const percent = Math.min(100, data.estimatedMinutesLeft > 0 && isFinite(data.estimatedMinutesLeft)
-    ? Math.round((Math.min(data.estimatedMinutesLeft, 600) / 600) * 100)
-    : 0);
 
   return (
     <div className="glass-card" style={{ WebkitAppRegion: 'no-drag' }}>
@@ -75,34 +66,70 @@ const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName, u
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>余额</div>
-          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>
-            {unit}<AnimatedNumber value={data.balance} decimals={unit === '¥' ? 2 : 0} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>
+                {data.percentage !== undefined ? '剩余' : '余额'}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>
+                {data.percentage !== undefined
+                  ? <><span style={{ color: data.percentage > 20 ? accentColor : data.percentage > 10 ? 'var(--alert-warning)' : 'var(--alert-critical)' }}>{data.percentage}%</span></>
+                  : <>{unit}<AnimatedNumber value={data.balance} decimals={unit === '¥' ? 2 : 0} /></>
+                }
+              </div>
+            </div>
+            {data.percentage !== undefined && (
+              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                🪙{data.balance >= 1000 ? (data.balance / 1000).toFixed(1) + 'K' : data.balance.toFixed(0)}
+              </span>
+            )}
+            {rechargeUrl && data.percentage === undefined && (
+              <button
+                onClick={() => window.open(rechargeUrl)}
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-secondary)',
+                  fontSize: 11,
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              >充值 ↗</button>
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-            <span>消耗速率</span>
-            <span>{formatRate(data.currentRate)} /min</span>
-          </div>
+          {/* Token Plan 百分比进度条 */}
+          {data.percentage !== undefined && (
+            <div className="progress-bar" style={{ marginTop: 8, height: 6, borderRadius: 3 }}>
+              <div className="fill" style={{
+                width: `${data.percentage}%`,
+                background: data.percentage > 20 ? accentColor : data.percentage > 10 ? 'var(--alert-warning)' : 'var(--alert-critical)',
+              }} />
+            </div>
+          )}
 
-          <ProgressBar percent={percent} color={accentColor} />
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginTop: 8, marginBottom: 2 }}>
-            <span style={{ color: 'var(--text-secondary)' }}>已消耗 Token</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-              {data.tokensConsumed >= 1000
-                ? `${(data.tokensConsumed / 1000).toFixed(1)}K`
-                : data.tokensConsumed.toLocaleString()}
-            </span>
-          </div>
+          {/* 今日消耗（非百分比模式） */}
+          {data.percentage === undefined && (
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', fontSize: 11,
+              marginTop: 10, padding: '6px 10px',
+              background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)',
+            }}>
+              <span style={{ color: 'var(--text-muted)' }}>今日消耗</span>
+              <span style={{ color: data.todayCost > 0 ? '#f08030' : 'var(--text-secondary)', fontWeight: 500 }}>
+                {unit}{data.todayCost.toFixed(2)}
+              </span>
+            </div>
+          )}
 
           <AlertBanner
             level={alert.level}
             message={alert.message}
             estimatedMinutes={data.estimatedMinutesLeft}
           />
-
-          <MiniChart data={data.recentRates} color={accentColor} width={290} height={32} />
         </>
       )}
     </div>

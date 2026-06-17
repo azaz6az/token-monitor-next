@@ -7,9 +7,10 @@ export interface ServiceData {
   currentRate: number;
   recentRates: number[];
   estimatedMinutesLeft: number;
-  tokensConsumed: number;
+  todayCost: number;
   error: string | null;
   lastUpdated: number;
+  percentage?: number;
 }
 
 export interface AlertData {
@@ -29,7 +30,7 @@ const defaultService = (service: string): ServiceData => ({
   currentRate: 0,
   recentRates: [],
   estimatedMinutesLeft: Infinity,
-  tokensConsumed: 0,
+  todayCost: 0,
   error: null,
   lastUpdated: 0,
 });

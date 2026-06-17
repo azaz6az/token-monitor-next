@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  getApiKeys: (): Promise<{ deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }> =>
+  getApiKeys: (): Promise<{ deepseekKey?: string; mimoCookies?: string }> =>
     ipcRenderer.invoke('get-api-keys'),
-  saveApiKeys: (keys: { deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }): Promise<{ success: boolean }> =>
+  saveApiKeys: (keys: { deepseekKey?: string; mimoCookies?: string }): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('save-api-keys', keys),
   manualRefresh: (): Promise<{ success: boolean }> =>
     ipcRenderer.invoke('manual-refresh'),
@@ -16,4 +16,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('token-data', handler);
     return () => { ipcRenderer.removeListener('token-data', handler); };
   },
+  muteBubble: (key: string): void => {
+    ipcRenderer.send('mute-bubble', key);
+  },
+  captureMiMo: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('capture-mimo'),
 });

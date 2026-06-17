@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { getApiKeys, saveApiKeys } from '../api/clients';
+import { getApiKeys, saveApiKeys, captureMiMoCookies } from '../api/clients';
 import { triggerManualRefresh } from '../engine/poller';
 import { getLatestBalance, insertBalance, getRecentRates } from '../db/database';
 
@@ -8,7 +8,7 @@ export function registerIpcHandlers(): void {
     return getApiKeys();
   });
 
-  ipcMain.handle('save-api-keys', (_event, keys: { deepseek?: string; mimo?: string; tokenPlanServiceToken?: string; tokenPlanUserId?: string }) => {
+  ipcMain.handle('save-api-keys', (_event, keys: { deepseekKey?: string; mimoCookies?: string }) => {
     saveApiKeys(keys);
     triggerManualRefresh();
     return { success: true };
@@ -30,5 +30,10 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('get-history', (_event, service: string) => {
     return getRecentRates(service, 5);
+  });
+
+  ipcMain.handle('capture-mimo', async () => {
+    const ok = await captureMiMoCookies();
+    return { success: ok };
   });
 }

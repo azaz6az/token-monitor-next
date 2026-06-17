@@ -1,4 +1,5 @@
 import { getLastAlert, insertAlert } from '../db/database';
+import { ALERT_COOLDOWN_MS } from '../constants';
 
 export type AlertLevel = 'normal' | 'reminder' | 'warning' | 'critical';
 
@@ -19,12 +20,11 @@ interface Threshold {
 }
 
 const THRESHOLDS: Threshold[] = [
-  { level: 'critical', minutes: 15, autoClose: false, duration: 0, systemNotify: true },
-  { level: 'warning', minutes: 60, autoClose: false, duration: 0, systemNotify: false },
+  { level: 'critical', minutes: 15, autoClose: true, duration: 5000, systemNotify: true },
+  { level: 'warning', minutes: 60, autoClose: true, duration: 5000, systemNotify: false },
   { level: 'reminder', minutes: 120, autoClose: true, duration: 5000, systemNotify: false },
 ];
 
-const ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 
 export function evaluateAlert(service: string, estimatedMinutesLeft: number): AlertState {
   if (!isFinite(estimatedMinutesLeft)) {

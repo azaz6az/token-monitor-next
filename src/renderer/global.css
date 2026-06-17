@@ -24,20 +24,36 @@
 
 body {
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  background: linear-gradient(135deg, #0d0d1f 0%, #151530 100%);
   color: var(--text-primary);
   overflow: hidden;
   user-select: none;
-  -webkit-app-region: drag;
+  -webkit-app-region: no-drag;
   height: 100vh;
+}
+
+/* 面板入口动画 */
+@keyframes panelIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.panel-enter {
+  animation: panelIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 #root {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  gap: 10px;
+  padding: 4px 10px 10px;
+  gap: 8px;
 }
 
 .glass-card {
@@ -48,13 +64,15 @@ body {
   -webkit-backdrop-filter: blur(20px);
   box-shadow: var(--shadow-card), 0 0 1px var(--card-glow) inset;
   padding: 14px;
+  -webkit-app-region: no-drag;
 }
 
 .titlebar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
+  padding: 6px 10px;
+  min-height: 32px;
   -webkit-app-region: drag;
 }
 
@@ -211,27 +229,28 @@ body {
 }
 
 .settings-panel {
-  width: 280px;
-  padding: 20px;
+  width: 300px;
+  padding: 24px;
 }
 
 .settings-panel label {
   font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   display: block;
 }
 
 .settings-panel input {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   background: rgba(0,0,0,0.3);
   color: var(--text-primary);
-  font-size: 12px;
-  margin-bottom: 12px;
+  font-size: 13px;
+  margin-bottom: 10px;
   outline: none;
+  font-family: 'Consolas', 'Cascadia Code', monospace;
 }
 
 .settings-panel input:focus {

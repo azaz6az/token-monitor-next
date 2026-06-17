@@ -1,4 +1,5 @@
 import { getRecentRates, getLatestBalance } from '../db/database';
+import { TOKENS_PER_YUAN } from '../constants';
 
 export interface RateInfo {
   service: string;
@@ -7,17 +8,17 @@ export interface RateInfo {
   estimatedMinutesLeft: number;
   balance: number;
   tokensUsed: number;
-  tokensConsumed: number;
+  todayCost: number;
   error: string | null;
   lastUpdated: number;
+  /** 百分比（Token Plan 专用） */
+  percentage?: number;
 }
-
-const TOKENS_PER_YUAN = 100_000;
 
 export function calculateRate(
   service: string,
   error: string | null = null,
-  tokensConsumed: number = 0,
+  todayCost: number = 0,
 ): RateInfo {
   const latestBalance = getLatestBalance(service);
   const balance = latestBalance?.balance ?? 0;
@@ -26,7 +27,7 @@ export function calculateRate(
   const records = getRecentRates(service, 5);
   const recentRates = records.map(r => r.tokens_per_minute);
 
-  const base = { service, error, lastUpdated: Date.now(), tokensConsumed };
+  const base = { service, error, lastUpdated: Date.now(), todayCost };
 
   if (recentRates.length === 0) {
     return { ...base, currentRate: 0, recentRates: [], estimatedMinutesLeft: Infinity, balance, tokensUsed };
