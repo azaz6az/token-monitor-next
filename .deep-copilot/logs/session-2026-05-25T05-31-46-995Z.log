@@ -1,0 +1,5 @@
+[2026-05-25T05:31:46.995Z] [INIT] Deep Copilot debug log started. file=c:\Users\30752\token-monitor\.deep-copilot\logs\session-2026-05-25T05-31-46-995Z.log
+[2026-05-25T05:31:46.995Z] [ACTIVATE] {"version":"0.35.3"}
+[2026-05-25T05:31:46.996Z] [TERMINAL_MONITOR_STARTED] {}
+[2026-05-25T05:31:46.996Z] [STATUSBAR_REGISTERED] {"id":"deepseekAgent.statusBar"}
+[2026-05-25T05:31:46.997Z] [INLINE_COMPLETION_REGISTERED]

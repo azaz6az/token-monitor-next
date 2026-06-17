@@ -1,0 +1,6 @@
+[2026-05-25T09:47:39.846Z] [INIT] Deep Copilot debug log started. file=c:\Users\30752\token-monitor\.deep-copilot\logs\session-2026-05-25T09-47-39-846Z.log
+[2026-05-25T09:47:39.846Z] [ACTIVATE] {"version":"0.40.10"}
+[2026-05-25T09:47:39.847Z] [PROVIDERS_LOADED] {"count":4,"ids":["anthropic","custom","deepseek","openai"]}
+[2026-05-25T09:47:39.847Z] [TERMINAL_MONITOR_STARTED] {}
+[2026-05-25T09:47:39.848Z] [STATUSBAR_REGISTERED] {"id":"deepseekAgent.statusBar"}
+[2026-05-25T09:47:39.849Z] [INLINE_COMPLETION_REGISTERED]

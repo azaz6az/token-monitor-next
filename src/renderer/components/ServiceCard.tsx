@@ -103,12 +103,34 @@ const ServiceCard: React.FC<Props> = ({ data, alert, accentColor, displayName, u
 
           {/* Token Plan 百分比进度条 */}
           {data.percentage !== undefined && (
-            <div className="progress-bar" style={{ marginTop: 8, height: 6, borderRadius: 3 }}>
-              <div className="fill" style={{
-                width: `${data.percentage}%`,
-                background: data.percentage > 20 ? accentColor : data.percentage > 10 ? 'var(--alert-warning)' : 'var(--alert-critical)',
-              }} />
-            </div>
+            <>
+              <div className="progress-bar" style={{ marginTop: 8, height: 6, borderRadius: 3 }}>
+                <div className="fill" style={{
+                  width: `${data.percentage}%`,
+                  background: data.percentage > 20 ? accentColor : data.percentage > 10 ? 'var(--alert-warning)' : 'var(--alert-critical)',
+                }} />
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', fontSize: 11,
+                marginTop: 10, padding: '6px 10px',
+                background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)',
+              }}>
+                <span style={{ color: 'var(--text-muted)' }}>剩余</span>
+                <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  🪙{data.balance >= 1000 ? (data.balance / 1000).toFixed(0) + 'K' : data.balance.toFixed(0)}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', fontSize: 11,
+                padding: '6px 10px',
+                background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', marginTop: 2,
+              }}>
+                <span style={{ color: 'var(--text-muted)' }}>今日消耗</span>
+                <span style={{ color: data.todayCost > 0 ? '#f08030' : 'var(--text-secondary)', fontWeight: 500 }}>
+                  ¥{data.todayCost.toFixed(2)}
+                </span>
+              </div>
+            </>
           )}
 
           {/* 今日消耗（非百分比模式） */}

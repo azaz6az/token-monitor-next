@@ -39,6 +39,7 @@ function createTrayIcon(): Electron.NativeImage {
 }
 
 function createTray(): void {
+  if (tray && !tray.isDestroyed()) return; // 防止重复创建
   tray = new Tray(createTrayIcon());
   tray.setToolTip('Token Monitor — 双击显示面板');
 
